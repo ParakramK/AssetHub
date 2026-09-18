@@ -1,26 +1,7 @@
 <?php
 
 use App\Models\Role;
-use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
-
-function superAdminUser(): User
-{
-    $role = Role::factory()->superAdmin()->make();
-    $user = User::factory()->make(['role_id' => $role->id]);
-    $user->setRelation('role', $role);
-
-    return $user;
-}
-
-function standardUser(): User
-{
-    $role = Role::factory()->make(['name' => 'User']);
-    $user = User::factory()->make(['role_id' => $role->id]);
-    $user->setRelation('role', $role);
-
-    return $user;
-}
 
 test('redirects guests to the login page', function (string $method, string $uri) {
     $this->{$method}($uri)->assertRedirect('/login');
