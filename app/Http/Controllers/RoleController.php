@@ -2,27 +2,40 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Role;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class RoleController extends Controller
 {
-    public function index()
+    public function index(): Response
     {
-        $roles = Role::all();
-        return view("roles.index", compact("roles"));
+        $roles = Role::query()->orderBy('name')->get();
+
+        return Inertia::render('roles/index', [
+            'roles' => $roles,
+        ]);
     }
-    public function store(Request $request)
+
+    public function create(): Response
     {
-        $role = Role::create($request->all());
-        return redirect()->route("roles.index")->with("success", "Role created successfully.");
+        return Inertia::render('roles/create');
     }
-    // public function show($id)
-    // {
-    //     // Logic to retrieve a specific role by ID
-    // }
-    // public function update(Request $request, $id)
-    // {
-    //     // Logic to update a specific role by ID 
-    // }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:roles,name'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'is_super_admin' => ['sometimes', 'boolean'],
+        ]);
+
+        Role::create($validated);
+
+        return redirect()
+            ->route('roles.index')
+            ->with('success', 'Role created successfully.');
+    }
 }
