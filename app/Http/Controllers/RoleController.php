@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PermissionName;
+use App\Models\AuditLog;
 use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Http\RedirectResponse;
@@ -68,7 +69,15 @@ class RoleController extends Controller
             ->map(fn (string $name) => Permission::firstOrCreate(['name' => $name, 'guard_name' => 'web']))
             ->all();
 
+        $previousPermissions = $role->permissions()->pluck('name')->all();
+
         $role->syncPermissions($permissions);
+
+        AuditLog::record($role, 'permissions_synced', [
+            'permissions' => $previousPermissions,
+        ], [
+            'permissions' => collect($validated['permissions'] ?? [])->sort()->values()->all(),
+        ]);
 
         return redirect()
             ->route('roles.index')

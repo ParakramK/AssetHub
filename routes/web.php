@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DeviceAssignmentController;
 use App\Http\Controllers\DeviceController;
@@ -159,6 +160,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('servers/{server}/ssh-keys/{key}/reveal', [SshKeyController::class, 'reveal'])
         ->middleware('permission:ssh-keys.view')
         ->name('servers.ssh-keys.reveal');
+
+    Route::get('audit-logs', [AuditLogController::class, 'index'])
+        ->middleware('permission:audit-logs.view')
+        ->name('audit-logs.index');
+    Route::delete('audit-logs/{auditLog}', [AuditLogController::class, 'destroy'])
+        ->middleware('permission:audit-logs.delete')
+        ->name('audit-logs.destroy');
+    Route::post('audit-logs/prune', [AuditLogController::class, 'prune'])
+        ->middleware('permission:audit-logs.delete')
+        ->name('audit-logs.prune');
 });
 
 require __DIR__.'/settings.php';

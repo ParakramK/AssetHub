@@ -30,7 +30,7 @@ use Illuminate\Support\Str;
  */
 class Domain extends Model
 {
-    use HasFactory, HasUuids;
+    use Auditable, HasFactory, HasUuids;
 
     protected $fillable = [
         'company_id',

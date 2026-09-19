@@ -35,7 +35,7 @@ use Illuminate\Support\Str;
 class Server extends Model
 {
     /** @use HasFactory<ServerFactory> */
-    use HasFactory, HasUuids;
+    use Auditable, HasFactory, HasUuids;
 
     /**
      * The attributes that are mass assignable.

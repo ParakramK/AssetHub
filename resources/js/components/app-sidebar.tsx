@@ -4,7 +4,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutGrid, Building2, Globe, Server, ShieldCheck, Users, Contact, Monitor, Smartphone, Laptop } from 'lucide-react';
+import { Building2, Contact, Globe, Laptop, LayoutGrid, Monitor, ScrollText, Server, ShieldCheck, Smartphone, Users } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -78,6 +78,11 @@ export function AppSidebar() {
                   title: 'Roles',
                   url: '/roles',
                   icon: ShieldCheck,
+              },
+              {
+                  title: 'Audit Logs',
+                  url: '/audit-logs',
+                  icon: ScrollText,
               },
           ]
         : mainNavItems;

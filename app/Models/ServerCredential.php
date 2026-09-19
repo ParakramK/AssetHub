@@ -26,7 +26,7 @@ use Illuminate\Support\Str;
 class ServerCredential extends Model
 {
     /** @use HasFactory<ServerCredentialFactory> */
-    use HasFactory, HasUuids;
+    use Auditable, HasFactory, HasUuids;
 
     /**
      * The attributes that are mass assignable.

@@ -22,7 +22,7 @@ use Illuminate\Support\Str;
 class DeviceType extends Model
 {
     /** @use HasFactory<DeviceTypeFactory> */
-    use HasFactory, HasUuids;
+    use Auditable, HasFactory, HasUuids;
 
     protected $fillable = [
         'name',

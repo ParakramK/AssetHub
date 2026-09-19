@@ -39,7 +39,7 @@ use Illuminate\Support\Str;
 class Device extends Model
 {
     /** @use HasFactory<DeviceFactory> */
-    use HasFactory, HasUuids;
+    use Auditable, HasFactory, HasUuids;
 
     protected $fillable = [
         'company_id',

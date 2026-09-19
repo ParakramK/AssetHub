@@ -28,7 +28,7 @@ use Illuminate\Support\Str;
 class SimAssignment extends Model
 {
     /** @use HasFactory<SimAssignmentFactory> */
-    use HasFactory, HasUuids;
+    use Auditable, HasFactory, HasUuids;
 
     protected $fillable = [
         'sim_card_id',

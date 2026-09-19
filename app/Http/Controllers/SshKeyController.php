@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AuditAction;
+use App\Models\AuditLog;
 use App\Models\Server;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -46,6 +48,11 @@ class SshKeyController extends Controller
     public function reveal(Server $server, string $key): JsonResponse
     {
         $key = $server->sshKeys()->where('id', $key)->firstOrFail();
+
+        AuditLog::record($key, AuditAction::Revealed, null, [
+            'server_id' => $key->server_id,
+            'name' => $key->name,
+        ]);
 
         return response()->json(['private_key' => $key->private_key]);
     }

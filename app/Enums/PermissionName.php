@@ -67,6 +67,9 @@ enum PermissionName: string
     case EmployeesUpdate = 'employees.update';
     case EmployeesDelete = 'employees.delete';
 
+    case AuditLogsView = 'audit-logs.view';
+    case AuditLogsDelete = 'audit-logs.delete';
+
     public function module(): string
     {
         return Str::before($this->value, '.');

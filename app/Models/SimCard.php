@@ -34,7 +34,7 @@ use Illuminate\Support\Str;
 class SimCard extends Model
 {
     /** @use HasFactory<SimCardFactory> */
-    use HasFactory, HasUuids;
+    use Auditable, HasFactory, HasUuids;
 
     protected $fillable = [
         'company_id',

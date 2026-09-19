@@ -18,7 +18,7 @@ use Illuminate\Support\Str;
  */
 class Company extends Model
 {
-    use HasFactory, HasUuids;
+    use Auditable, HasFactory, HasUuids;
 
     protected $table = 'companies';
 

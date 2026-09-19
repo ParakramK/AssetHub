@@ -28,7 +28,7 @@ use Illuminate\Support\Str;
 class DeviceAssignment extends Model
 {
     /** @use HasFactory<DeviceAssignmentFactory> */
-    use HasFactory, HasUuids;
+    use Auditable, HasFactory, HasUuids;
 
     protected $fillable = [
         'device_id',

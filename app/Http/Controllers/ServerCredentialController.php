@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AuditAction;
+use App\Models\AuditLog;
 use App\Models\Server;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -45,6 +47,11 @@ class ServerCredentialController extends Controller
     public function reveal(Server $server, string $credential): JsonResponse
     {
         $credential = $server->credentials()->where('id', $credential)->firstOrFail();
+
+        AuditLog::record($credential, AuditAction::Revealed, null, [
+            'server_id' => $credential->server_id,
+            'username' => $credential->username,
+        ]);
 
         return response()->json(['password' => $credential->password]);
     }

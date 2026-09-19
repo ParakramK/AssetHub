@@ -27,7 +27,7 @@ use Illuminate\Support\Str;
 class SshKey extends Model
 {
     /** @use HasFactory<SshKeyFactory> */
-    use HasFactory, HasUuids;
+    use Auditable, HasFactory, HasUuids;
 
     /**
      * The attributes that are mass assignable.
