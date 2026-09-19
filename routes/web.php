@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\DeviceTypeController;
 use App\Http\Controllers\DomainController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\RoleController;
@@ -78,6 +79,15 @@ Route::middleware(['auth'])->group(function () {
     Route::post('employees', [EmployeeController::class, 'store'])
         ->middleware('permission:employees.create')
         ->name('employees.store');
+    Route::get('device-types', [DeviceTypeController::class, 'index'])
+        ->middleware('permission:device-types.view')
+        ->name('device-types.index');
+    Route::get('device-types/create', [DeviceTypeController::class, 'create'])
+        ->middleware('permission:device-types.create')
+        ->name('device-types.create');
+    Route::post('device-types', [DeviceTypeController::class, 'store'])
+        ->middleware('permission:device-types.create')
+        ->name('device-types.store');
 
     Route::get('servers', [ServerController::class, 'index'])
         ->middleware('permission:servers.view')
