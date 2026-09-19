@@ -6,20 +6,36 @@ use App\Models\Company;
 use App\Models\Domain;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class DomainController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
+
+        $search = Str::limit(trim((string) $request->query('search', '')), 255);
+        $companyId = $request->query('company_id');
+        $companyId = is_string($companyId) && Str::isUuid($companyId) ? $companyId : null;
+
         $domains = Domain::query()
             ->with('company')
+            ->when($search !== '', fn ($query) => $query->where(
+                fn ($query) => $query->where('domain_name', 'like', "%{$search}%")
+                    ->orWhere('registrar', 'like', "%{$search}%")
+            ))
+            ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
             ->orderBy('domain_name')
             ->get();
 
         return Inertia::render('domains/index', [
             'domains' => $domains,
+            'filters' => [
+                'search' => $search,
+                'company_id' => $companyId,
+            ],
+            'companies' => Company::query()->orderBy('name')->get(['id', 'name']),
         ]);
     }
 

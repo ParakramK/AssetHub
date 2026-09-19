@@ -97,3 +97,39 @@ test('stores a domain crediting the authenticated user and redirects to the list
         ->and($domain->registrar)->toBe('Cloudflare')
         ->and($domain->expiry_date->format('Y-m-d'))->toBe('2027-05-20');
 });
+
+test('searches domains by name or registrar', function () {
+    Domain::factory()->create(['domain_name' => 'example.com', 'registrar' => 'Cloudflare']);
+    Domain::factory()->create(['domain_name' => 'other.org', 'registrar' => 'GoDaddy']);
+
+    $this->actingAs(superAdminUser())->get('/domains?search=example')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('domains/index')
+            ->has('domains', 1)
+            ->where('domains.0.domain_name', 'example.com')
+            ->where('filters.search', 'example')
+        );
+
+    $this->actingAs(superAdminUser())->get('/domains?search=godaddy')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('domains', 1)
+            ->where('domains.0.domain_name', 'other.org')
+        );
+});
+
+test('filters domains by company', function () {
+    $acme = Company::factory()->create(['name' => 'Acme']);
+    $other = Company::factory()->create(['name' => 'Other']);
+    Domain::factory()->create(['domain_name' => 'a.com', 'company_id' => $acme->id]);
+    Domain::factory()->create(['domain_name' => 'b.com', 'company_id' => $other->id]);
+
+    $this->actingAs(superAdminUser())->get("/domains?company_id={$acme->id}")
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('domains', 1)
+            ->where('domains.0.domain_name', 'a.com')
+            ->where('filters.company_id', $acme->id)
+        );
+});

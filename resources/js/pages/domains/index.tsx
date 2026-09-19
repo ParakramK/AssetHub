@@ -1,9 +1,12 @@
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 
 export interface Domain {
     id: string;
@@ -19,6 +22,11 @@ export interface Domain {
     };
 }
 
+interface Filters {
+    search: string;
+    company_id: string | null;
+}
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Domains',
@@ -26,7 +34,52 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function DomainsIndex({ domains }: { domains: Domain[] }) {
+export default function DomainsIndex({
+    domains,
+    filters,
+    companies,
+}: {
+    domains: Domain[];
+    filters: Filters;
+    companies: { id: string; name: string }[];
+}) {
+    const [search, setSearch] = useState(filters.search);
+    const [companyId, setCompanyId] = useState(filters.company_id ?? '');
+
+    const apply = (next: { search?: string; company_id?: string }) => {
+        const query: Record<string, string> = {
+            search: next.search ?? search,
+            company_id: next.company_id ?? companyId,
+        };
+
+        Object.keys(query).forEach((key) => {
+            if (!query[key]) {
+                delete query[key];
+            }
+        });
+
+        router.get(route('domains.index'), query, { preserveState: true, preserveScroll: true, replace: true });
+    };
+
+    useEffect(() => {
+        if (search === filters.search) {
+            return;
+        }
+
+        const id = setTimeout(() => apply({ search }), 300);
+
+        return () => clearTimeout(id);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [search]);
+
+    const isFiltered = search !== '' || companyId !== '';
+
+    const clear = () => {
+        setSearch('');
+        setCompanyId('');
+        router.get(route('domains.index'), {}, { preserveState: true, preserveScroll: true, replace: true });
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Domains" />
@@ -39,10 +92,46 @@ export default function DomainsIndex({ domains }: { domains: Domain[] }) {
                     </Button>
                 </div>
 
+                <div className="flex flex-col gap-2 sm:flex-row">
+                    <Input
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Search by domain or registrar…"
+                        className="sm:max-w-xs"
+                    />
+
+                    <Select
+                        value={companyId}
+                        onValueChange={(value) => {
+                            setCompanyId(value);
+                            apply({ company_id: value });
+                        }}
+                    >
+                        <SelectTrigger className="sm:max-w-xs">
+                            <SelectValue placeholder="All companies" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {companies.map((company) => (
+                                <SelectItem key={company.id} value={company.id}>
+                                    {company.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    {isFiltered && (
+                        <Button variant="ghost" onClick={clear}>
+                            Clear
+                        </Button>
+                    )}
+                </div>
+
                 <Card>
                     <CardContent className="p-0">
                         {domains.length === 0 ? (
-                            <p className="text-muted-foreground p-6 text-sm">No domains yet. Create the first domain to get started.</p>
+                            <p className="text-muted-foreground p-6 text-sm">
+                                {isFiltered ? 'No domains match these filters.' : 'No domains yet. Create the first domain to get started.'}
+                            </p>
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left text-sm">
