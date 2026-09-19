@@ -24,6 +24,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('roles', [RoleController::class, 'store'])
         ->middleware('permission:roles.create')
         ->name('roles.store');
+    Route::get('roles/{role}/edit', [RoleController::class, 'edit'])
+        ->middleware('permission:roles.update')
+        ->name('roles.edit');
+    Route::put('roles/{role}', [RoleController::class, 'update'])
+        ->middleware('permission:roles.update')
+        ->name('roles.update');
 
     Route::get('companies', [CompanyController::class, 'index'])
         ->middleware('permission:companies.view')

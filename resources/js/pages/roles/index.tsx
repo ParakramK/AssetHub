@@ -46,6 +46,9 @@ export default function RolesIndex({ roles }: { roles: Role[] }) {
                                             <th className="px-6 py-3 font-medium">Name</th>
                                             <th className="px-6 py-3 font-medium">Description</th>
                                             <th className="px-6 py-3 font-medium">Type</th>
+                                            <th className="px-6 py-3 font-medium">
+                                                <span className="sr-only">Actions</span>
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y">
@@ -57,6 +60,11 @@ export default function RolesIndex({ roles }: { roles: Role[] }) {
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     {role.is_super_admin ? <Badge>Super Admin</Badge> : <Badge variant="secondary">Standard</Badge>}
+                                                </td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <Button variant="outline" size="sm" asChild>
+                                                        <Link href={route('roles.edit', role.id)}>Edit</Link>
+                                                    </Button>
                                                 </td>
                                             </tr>
                                         ))}

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\PermissionName;
 use App\Models\Role;
 use Illuminate\Database\Seeder;
 
@@ -34,23 +35,6 @@ class RoleSeeder extends Seeder
             'description' => 'Standard User role',
         ]);
 
-        $admin->syncPermissions([
-            'users.view',
-            'users.create',
-            'users.update',
-            'users.delete',
-            'roles.view',
-            'roles.create',
-            'roles.update',
-            'roles.delete',
-            'companies.view',
-            'companies.create',
-            'companies.update',
-            'companies.delete',
-            'domains.view',
-            'domains.create',
-            'domains.update',
-            'domains.delete',
-        ]);
+        $admin->syncPermissions(PermissionName::values());
     }
 }
