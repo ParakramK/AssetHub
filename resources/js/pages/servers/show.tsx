@@ -337,7 +337,7 @@ export default function ServersShow({
                                     value={keyForm.data.private_key}
                                     onChange={(e) => keyForm.setData('private_key', e.target.value)}
                                     required
-                                    placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"
+                                    placeholder="Paste OpenSSH private key here"
                                 />
                                 <InputError message={keyForm.errors.private_key} />
                             </div>
