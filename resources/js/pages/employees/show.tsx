@@ -38,16 +38,44 @@ interface AvailableSim {
     provider: string;
 }
 
+interface CurrentDevice {
+    id: string;
+    code: string;
+    brand: string;
+    model: string;
+    assignment_id: string | null;
+}
+
+interface DeviceHistoryRow {
+    id: string;
+    assigned_at: string;
+    returned_at: string | null;
+    device: { id: string; code: string };
+}
+
+interface AvailableDevice {
+    id: string;
+    code: string;
+    brand: string;
+    model: string;
+}
+
 export default function EmployeesShow({
     employee,
     currentSims,
     history,
     availableSims,
+    currentDevices,
+    deviceHistory,
+    availableDevices,
 }: {
     employee: EmployeeData;
     currentSims: CurrentSim[];
     history: HistoryRow[];
     availableSims: AvailableSim[];
+    currentDevices: CurrentDevice[];
+    deviceHistory: DeviceHistoryRow[];
+    availableDevices: AvailableDevice[];
 }) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Employees', href: '/employees' },
@@ -68,6 +96,23 @@ export default function EmployeesShow({
     const returnSim = (id: string) => {
         if (window.confirm('Mark this SIM as returned to IT?')) {
             router.post(route('sim-assignments.return', id));
+        }
+    };
+
+    const deviceForm = useForm({
+        device_id: '',
+    });
+
+    const submitDevice: SubmitEventHandler = (e) => {
+        e.preventDefault();
+        deviceForm.post(route('employees.device-assignments.store', employee.id), {
+            onSuccess: () => deviceForm.reset(),
+        });
+    };
+
+    const returnDevice = (id: string) => {
+        if (window.confirm('Mark this device as returned?')) {
+            router.post(route('device-assignments.return', id));
         }
     };
 
@@ -154,7 +199,7 @@ export default function EmployeesShow({
 
                 <Card className="max-w-3xl">
                     <CardHeader className="pb-3">
-                        <CardTitle className="text-base">Assignment history</CardTitle>
+                        <CardTitle className="text-base">SIM history</CardTitle>
                     </CardHeader>
                     <CardContent className="p-0">
                         {history.length === 0 ? (
@@ -173,6 +218,100 @@ export default function EmployeesShow({
                                         {history.map((row) => (
                                             <tr key={row.id} className="hover:bg-muted/50">
                                                 <td className="px-6 py-4 font-medium">{row.sim_card.number}</td>
+                                                <td className="text-muted-foreground px-6 py-4">{formatDateTime(row.assigned_at)}</td>
+                                                <td className="px-6 py-4">
+                                                    {row.returned_at ? (
+                                                        <span className="text-muted-foreground">{formatDateTime(row.returned_at)}</span>
+                                                    ) : (
+                                                        <Badge>In use</Badge>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+
+                <Card className="max-w-3xl">
+                    <CardHeader className="pb-3">
+                        <CardTitle className="text-base">Current devices</CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex flex-col gap-4">
+                        {currentDevices.length === 0 ? (
+                            <p className="text-muted-foreground text-sm">No devices currently assigned.</p>
+                        ) : (
+                            <ul className="divide-y rounded-md border">
+                                {currentDevices.map((device) => (
+                                    <li key={device.id} className="flex items-center justify-between px-4 py-2 text-sm">
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-medium">{device.code}</span>
+                                            <span className="text-muted-foreground">
+                                                {device.brand} {device.model}
+                                            </span>
+                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => device.assignment_id && returnDevice(device.assignment_id)}
+                                            disabled={!device.assignment_id}
+                                        >
+                                            Return
+                                        </Button>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+
+                        {availableDevices.length > 0 && (
+                            <form onSubmit={submitDevice} className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                                <div className="grid flex-1 gap-2">
+                                    <Label htmlFor="device_id">Assign a device</Label>
+                                    <Select value={deviceForm.data.device_id} onValueChange={(value) => deviceForm.setData('device_id', value)}>
+                                        <SelectTrigger id="device_id">
+                                            <SelectValue placeholder="Select an unassigned device" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {availableDevices.map((device) => (
+                                                <SelectItem key={device.id} value={device.id}>
+                                                    {device.code} ({device.brand} {device.model})
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError message={deviceForm.errors.device_id} />
+                                </div>
+                                <Button type="submit" disabled={deviceForm.processing}>
+                                    Assign
+                                </Button>
+                            </form>
+                        )}
+                    </CardContent>
+                </Card>
+
+                <Card className="max-w-3xl">
+                    <CardHeader className="pb-3">
+                        <CardTitle className="text-base">Device history</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        {deviceHistory.length === 0 ? (
+                            <p className="text-muted-foreground p-6 pt-0 text-sm">No device history yet.</p>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left text-sm">
+                                    <thead className="text-muted-foreground border-b text-xs uppercase">
+                                        <tr>
+                                            <th className="px-6 py-3 font-medium">Device</th>
+                                            <th className="px-6 py-3 font-medium">Assigned</th>
+                                            <th className="px-6 py-3 font-medium">Returned</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y">
+                                        {deviceHistory.map((row) => (
+                                            <tr key={row.id} className="hover:bg-muted/50">
+                                                <td className="px-6 py-4 font-medium">{row.device.code}</td>
                                                 <td className="text-muted-foreground px-6 py-4">{formatDateTime(row.assigned_at)}</td>
                                                 <td className="px-6 py-4">
                                                     {row.returned_at ? (

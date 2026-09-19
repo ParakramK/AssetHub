@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
+use App\Models\Device;
 use App\Models\Employee;
 use App\Models\SimCard;
 use Illuminate\Http\RedirectResponse;
@@ -85,6 +86,21 @@ class EmployeeController extends Controller
                 ->whereNull('current_employee_id')
                 ->orderBy('number')
                 ->get(['id', 'number', 'provider']),
+            'currentDevices' => $employee->currentDevices()->orderBy('code')->get()->map(fn ($device) => [
+                'id' => $device->id,
+                'code' => $device->code,
+                'brand' => $device->brand,
+                'model' => $device->model,
+                'assignment_id' => $device->assignments()->whereNull('returned_at')->latest('assigned_at')->first()?->id,
+            ])->all(),
+            'deviceHistory' => $employee->deviceAssignments()
+                ->with('device:id,code')
+                ->orderByDesc('assigned_at')
+                ->get(),
+            'availableDevices' => Device::where('company_id', $employee->company_id)
+                ->whereNull('current_employee_id')
+                ->orderBy('code')
+                ->get(['id', 'code', 'brand', 'model']),
         ]);
     }
 }

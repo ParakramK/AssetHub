@@ -52,6 +52,11 @@ enum PermissionName: string
     case DeviceTypesUpdate = 'device-types.update';
     case DeviceTypesDelete = 'device-types.delete';
 
+    case DevicesView = 'devices.view';
+    case DevicesCreate = 'devices.create';
+    case DevicesUpdate = 'devices.update';
+    case DevicesDelete = 'devices.delete';
+
     case SimCardsView = 'sim-cards.view';
     case SimCardsCreate = 'sim-cards.create';
     case SimCardsUpdate = 'sim-cards.update';

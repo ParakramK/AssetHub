@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\DeviceAssignmentController;
+use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\DeviceTypeController;
 use App\Http\Controllers\DomainController;
 use App\Http\Controllers\EmployeeController;
@@ -100,6 +102,22 @@ Route::middleware(['auth'])->group(function () {
     Route::post('device-types', [DeviceTypeController::class, 'store'])
         ->middleware('permission:device-types.create')
         ->name('device-types.store');
+
+    Route::get('devices', [DeviceController::class, 'index'])
+        ->middleware('permission:devices.view')
+        ->name('devices.index');
+    Route::get('devices/create', [DeviceController::class, 'create'])
+        ->middleware('permission:devices.create')
+        ->name('devices.create');
+    Route::post('devices', [DeviceController::class, 'store'])
+        ->middleware('permission:devices.create')
+        ->name('devices.store');
+    Route::post('employees/{employee}/device-assignments', [DeviceAssignmentController::class, 'store'])
+        ->middleware('permission:employees.update')
+        ->name('employees.device-assignments.store');
+    Route::post('device-assignments/{assignment}/return', [DeviceAssignmentController::class, 'return'])
+        ->middleware('permission:employees.update')
+        ->name('device-assignments.return');
 
     Route::get('sim-cards', [SimCardController::class, 'index'])
         ->middleware('permission:sim-cards.view')

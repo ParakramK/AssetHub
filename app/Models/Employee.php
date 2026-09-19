@@ -23,6 +23,8 @@ use Illuminate\Support\Str;
  * @property-read Company $company
  * @property-read Collection<int, SimAssignment> $simAssignments
  * @property-read Collection<int, SimCard> $currentSimCards
+ * @property-read Collection<int, DeviceAssignment> $deviceAssignments
+ * @property-read Collection<int, Device> $currentDevices
  *
  * @method static EmployeeFactory factory($count = null, $state = [])
  *
@@ -61,5 +63,17 @@ class Employee extends Model
     public function currentSimCards(): HasMany
     {
         return $this->hasMany(SimCard::class, 'current_employee_id');
+    }
+
+    /** @return HasMany<DeviceAssignment, $this> */
+    public function deviceAssignments(): HasMany
+    {
+        return $this->hasMany(DeviceAssignment::class);
+    }
+
+    /** @return HasMany<Device, $this> */
+    public function currentDevices(): HasMany
+    {
+        return $this->hasMany(Device::class, 'current_employee_id');
     }
 }
