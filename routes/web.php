@@ -6,6 +6,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\ServerController;
 use App\Http\Controllers\ServerCredentialController;
 use App\Http\Controllers\SshKeyController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -33,6 +34,19 @@ Route::middleware(['auth'])->group(function () {
     Route::put('roles/{role}', [RoleController::class, 'update'])
         ->middleware('permission:roles.update')
         ->name('roles.update');
+
+    Route::get('users', [UserController::class, 'index'])
+        ->middleware('permission:users.view')
+        ->name('users.index');
+    Route::get('users/create', [UserController::class, 'create'])
+        ->middleware('permission:users.create')
+        ->name('users.create');
+    Route::post('users', [UserController::class, 'store'])
+        ->middleware('permission:users.create')
+        ->name('users.store');
+    Route::delete('users/{user}', [UserController::class, 'destroy'])
+        ->middleware('permission:users.delete')
+        ->name('users.destroy');
 
     Route::get('companies', [CompanyController::class, 'index'])
         ->middleware('permission:companies.view')

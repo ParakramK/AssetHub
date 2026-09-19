@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
@@ -23,6 +25,8 @@ use Spatie\Permission\Traits\HasRoles;
  * @property Carbon|null $updated_at
  * @property-read DatabaseNotificationCollection<int, DatabaseNotification> $notifications
  * @property-read int|null $notifications_count
+ * @property-read Collection<int, Server> $createdServers
+ * @property-read Collection<int, Domain> $createdDomains
  *
  * @method static \Database\Factories\UserFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newModelQuery()
@@ -78,5 +82,21 @@ class User extends Authenticatable
         }
 
         return $this->roles()->where('is_super_admin', true)->exists();
+    }
+
+    /**
+     * @return HasMany<Server, $this>
+     */
+    public function createdServers(): HasMany
+    {
+        return $this->hasMany(Server::class, 'created_by');
+    }
+
+    /**
+     * @return HasMany<Domain, $this>
+     */
+    public function createdDomains(): HasMany
+    {
+        return $this->hasMany(Domain::class, 'created_by');
     }
 }
