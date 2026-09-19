@@ -7,21 +7,45 @@ use App\Models\Company;
 use App\Models\Server;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ServerController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        // Filters are sanitized defensively (not validated): a validation
+        // redirect on a GET filter URL could loop back onto the same URL.
+        $search = Str::limit(trim((string) $request->query('search', '')), 255);
+        $companyId = $request->query('company_id');
+        $companyId = is_string($companyId) && Str::isUuid($companyId) ? $companyId : null;
+        $type = is_string($request->query('type')) ? ServerType::tryFrom($request->query('type')) : null;
+
         $servers = Server::query()
             ->with(['company', 'creator'])
+            ->when($search !== '', fn ($query) => $query->where(
+                fn ($query) => $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('ip_address', 'like', "%{$search}%")
+            ))
+            ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
+            ->when($type, fn ($query) => $query->where('type', $type->value))
             ->orderBy('name')
             ->get();
 
         return Inertia::render('servers/index', [
             'servers' => $servers,
+            'filters' => [
+                'search' => $search,
+                'company_id' => $companyId,
+                'type' => $type?->value,
+            ],
+            'companies' => Company::query()->orderBy('name')->get(['id', 'name']),
+            'types' => collect(ServerType::cases())->map(fn (ServerType $type) => [
+                'value' => $type->value,
+                'label' => $type->name,
+            ])->all(),
         ]);
     }
 
@@ -57,7 +81,7 @@ class ServerController extends Controller
             ->with('success', 'Server created successfully.');
     }
 
-    public function show(Server $server): Response
+    public function show(Request $request, Server $server): Response
     {
         $server->load(['company', 'creator']);
 
@@ -65,8 +89,17 @@ class ServerController extends Controller
             'server' => $server,
             // Secrets are never sent to the client: select safe columns only
             // ($hidden on the models is the second layer of defense).
+            // Public keys are not secret and are shown inline.
             'credentials' => $server->credentials()->orderBy('username')->get(['id', 'username', 'created_at']),
-            'sshKeys' => $server->sshKeys()->orderBy('name')->get(['id', 'name', 'created_at']),
+            'sshKeys' => $server->sshKeys()->orderBy('name')->get(['id', 'name', 'public_key', 'created_at']),
+            'can' => [
+                'viewCredentials' => $request->user()->can('credentials.view'),
+                'createCredentials' => $request->user()->can('credentials.create'),
+                'deleteCredentials' => $request->user()->can('credentials.delete'),
+                'viewSshKeys' => $request->user()->can('ssh-keys.view'),
+                'createSshKeys' => $request->user()->can('ssh-keys.create'),
+                'deleteSshKeys' => $request->user()->can('ssh-keys.delete'),
+            ],
         ]);
     }
 }

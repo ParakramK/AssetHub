@@ -2,9 +2,12 @@ import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 
 export interface Server {
     id: string;
@@ -25,6 +28,12 @@ export interface Server {
     } | null;
 }
 
+interface Filters {
+    search: string;
+    company_id: string | null;
+    type: string | null;
+}
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Servers',
@@ -32,7 +41,57 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function ServersIndex({ servers }: { servers: Server[] }) {
+export default function ServersIndex({
+    servers,
+    filters,
+    companies,
+    types,
+}: {
+    servers: Server[];
+    filters: Filters;
+    companies: { id: string; name: string }[];
+    types: { value: string; label: string }[];
+}) {
+    const [search, setSearch] = useState(filters.search);
+    const [companyId, setCompanyId] = useState(filters.company_id ?? '');
+    const [type, setType] = useState(filters.type ?? '');
+
+    const apply = (next: { search?: string; company_id?: string; type?: string }) => {
+        const query: Record<string, string> = {
+            search: next.search ?? search,
+            company_id: next.company_id ?? companyId,
+            type: next.type ?? type,
+        };
+
+        Object.keys(query).forEach((key) => {
+            if (!query[key]) {
+                delete query[key];
+            }
+        });
+
+        router.get(route('servers.index'), query, { preserveState: true, preserveScroll: true, replace: true });
+    };
+
+    useEffect(() => {
+        if (search === filters.search) {
+            return;
+        }
+
+        const id = setTimeout(() => apply({ search }), 300);
+
+        return () => clearTimeout(id);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [search]);
+
+    const isFiltered = search !== '' || companyId !== '' || type !== '';
+
+    const clear = () => {
+        setSearch('');
+        setCompanyId('');
+        setType('');
+        router.get(route('servers.index'), {}, { preserveState: true, preserveScroll: true, replace: true });
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Servers" />
@@ -45,10 +104,65 @@ export default function ServersIndex({ servers }: { servers: Server[] }) {
                     </Button>
                 </div>
 
+                <div className="flex flex-col gap-2 sm:flex-row">
+                    <Input
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Search by name or IP address…"
+                        className="sm:max-w-xs"
+                    />
+
+                    <Select
+                        value={companyId}
+                        onValueChange={(value) => {
+                            setCompanyId(value);
+                            apply({ company_id: value });
+                        }}
+                    >
+                        <SelectTrigger className="sm:max-w-xs">
+                            <SelectValue placeholder="All companies" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {companies.map((company) => (
+                                <SelectItem key={company.id} value={company.id}>
+                                    {company.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    <Select
+                        value={type}
+                        onValueChange={(value) => {
+                            setType(value);
+                            apply({ type: value });
+                        }}
+                    >
+                        <SelectTrigger className="sm:max-w-xs">
+                            <SelectValue placeholder="All types" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {types.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                    {option.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    {isFiltered && (
+                        <Button variant="ghost" onClick={clear}>
+                            Clear
+                        </Button>
+                    )}
+                </div>
+
                 <Card>
                     <CardContent className="p-0">
                         {servers.length === 0 ? (
-                            <p className="text-muted-foreground p-6 text-sm">No servers yet. Create the first server to get started.</p>
+                            <p className="text-muted-foreground p-6 text-sm">
+                                {isFiltered ? 'No servers match these filters.' : 'No servers yet. Create the first server to get started.'}
+                            </p>
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left text-sm">

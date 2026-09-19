@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { SubmitEventHandler } from 'react';
+import { SubmitEventHandler, useState } from 'react';
 
 interface ServerData {
     id: string;
@@ -29,6 +29,7 @@ interface CredentialData {
 interface SshKeyData {
     id: string;
     name: string;
+    public_key: string | null;
     created_at: string;
 }
 
@@ -39,10 +40,19 @@ export default function ServersShow({
     server,
     credentials,
     sshKeys,
+    can,
 }: {
     server: ServerData;
     credentials: CredentialData[];
     sshKeys: SshKeyData[];
+    can: {
+        viewCredentials: boolean;
+        createCredentials: boolean;
+        deleteCredentials: boolean;
+        viewSshKeys: boolean;
+        createSshKeys: boolean;
+        deleteSshKeys: boolean;
+    };
 }) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Servers', href: '/servers' },
@@ -51,6 +61,61 @@ export default function ServersShow({
 
     const credentialForm = useForm({ username: '', password: '' });
     const keyForm = useForm({ name: '', public_key: '', private_key: '' });
+
+    // Revealed secrets live only in component state: they are fetched
+    // on demand, cleared on hide, and never persisted anywhere.
+    const [revealedPasswords, setRevealedPasswords] = useState<Record<string, string>>({});
+    const [revealedKeys, setRevealedKeys] = useState<Record<string, string>>({});
+    const [loadingId, setLoadingId] = useState<string | null>(null);
+    const [copiedId, setCopiedId] = useState<string | null>(null);
+
+    const fetchSecret = async (url: string, id: string, store: (value: string) => void) => {
+        setLoadingId(id);
+        try {
+            const response = await fetch(url, { headers: { Accept: 'application/json' } });
+            if (!response.ok) {
+                return;
+            }
+            const data = await response.json();
+            store(data.password ?? data.private_key ?? '');
+        } finally {
+            setLoadingId(null);
+        }
+    };
+
+    const forget = (id: string, setState: React.Dispatch<React.SetStateAction<Record<string, string>>>) => {
+        setState((prev) => {
+            const next = { ...prev };
+            delete next[id];
+            return next;
+        });
+    };
+
+    const toggleCredential = (id: string) => {
+        if (revealedPasswords[id]) {
+            forget(id, setRevealedPasswords);
+            return;
+        }
+        void fetchSecret(route('servers.credentials.reveal', [server.id, id]), id, (value) =>
+            setRevealedPasswords((prev) => ({ ...prev, [id]: value })),
+        );
+    };
+
+    const toggleKey = (id: string) => {
+        if (revealedKeys[id]) {
+            forget(id, setRevealedKeys);
+            return;
+        }
+        void fetchSecret(route('servers.ssh-keys.reveal', [server.id, id]), id, (value) =>
+            setRevealedKeys((prev) => ({ ...prev, [id]: value })),
+        );
+    };
+
+    const copy = async (id: string, value: string) => {
+        await navigator.clipboard.writeText(value);
+        setCopiedId(id);
+        setTimeout(() => setCopiedId((current) => (current === id ? null : current)), 1500);
+    };
 
     const submitCredential: SubmitEventHandler = (e) => {
         e.preventDefault();
@@ -116,17 +181,46 @@ export default function ServersShow({
                         ) : (
                             <ul className="divide-y rounded-md border">
                                 {credentials.map((credential) => (
-                                    <li key={credential.id} className="flex items-center justify-between px-4 py-2 text-sm">
-                                        <span className="font-medium">{credential.username}</span>
-                                        <Button variant="ghost" size="sm" onClick={() => removeCredential(credential.id)}>
-                                            Remove
-                                        </Button>
+                                    <li key={credential.id} className="flex flex-col gap-2 px-4 py-2 text-sm">
+                                        <div className="flex items-center justify-between">
+                                            <span className="font-medium">{credential.username}</span>
+                                            <div className="flex items-center gap-1">
+                                                {can.viewCredentials && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => toggleCredential(credential.id)}
+                                                        disabled={loadingId === credential.id}
+                                                    >
+                                                        {revealedPasswords[credential.id] ? 'Hide' : 'Show'}
+                                                    </Button>
+                                                )}
+                                                {can.deleteCredentials && (
+                                                    <Button variant="ghost" size="sm" onClick={() => removeCredential(credential.id)}>
+                                                        Remove
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </div>
+                                        {revealedPasswords[credential.id] && (
+                                            <div className="flex items-center gap-2">
+                                                <Input readOnly value={revealedPasswords[credential.id]} className="font-mono" />
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => copy(credential.id, revealedPasswords[credential.id])}
+                                                >
+                                                    {copiedId === credential.id ? 'Copied' : 'Copy'}
+                                                </Button>
+                                            </div>
+                                        )}
                                     </li>
                                 ))}
                             </ul>
                         )}
 
-                        <form onSubmit={submitCredential} className="grid gap-4 sm:grid-cols-2">
+                        {can.createCredentials && (
+                            <form onSubmit={submitCredential} className="grid gap-4 sm:grid-cols-2">
                             <div className="grid gap-2">
                                 <Label htmlFor="username">Username</Label>
                                 <Input
@@ -156,7 +250,8 @@ export default function ServersShow({
                                     Add credential
                                 </Button>
                             </div>
-                        </form>
+                            </form>
+                        )}
                     </CardContent>
                 </Card>
 
@@ -170,17 +265,47 @@ export default function ServersShow({
                         ) : (
                             <ul className="divide-y rounded-md border">
                                 {sshKeys.map((key) => (
-                                    <li key={key.id} className="flex items-center justify-between px-4 py-2 text-sm">
-                                        <span className="font-medium">{key.name}</span>
-                                        <Button variant="ghost" size="sm" onClick={() => removeKey(key.id)}>
-                                            Remove
-                                        </Button>
+                                    <li key={key.id} className="flex flex-col gap-2 px-4 py-2 text-sm">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex min-w-0 flex-col">
+                                                <span className="font-medium">{key.name}</span>
+                                                {key.public_key && (
+                                                    <span className="text-muted-foreground truncate font-mono text-xs">{key.public_key}</span>
+                                                )}
+                                            </div>
+                                            <div className="flex shrink-0 items-center gap-1">
+                                                {can.viewSshKeys && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => toggleKey(key.id)}
+                                                        disabled={loadingId === key.id}
+                                                    >
+                                                        {revealedKeys[key.id] ? 'Hide' : 'Show'}
+                                                    </Button>
+                                                )}
+                                                {can.deleteSshKeys && (
+                                                    <Button variant="ghost" size="sm" onClick={() => removeKey(key.id)}>
+                                                        Remove
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </div>
+                                        {revealedKeys[key.id] && (
+                                            <div className="flex items-center gap-2">
+                                                <Input readOnly value={revealedKeys[key.id]} className="font-mono" />
+                                                <Button variant="outline" size="sm" onClick={() => copy(key.id, revealedKeys[key.id])}>
+                                                    {copiedId === key.id ? 'Copied' : 'Copy'}
+                                                </Button>
+                                            </div>
+                                        )}
                                     </li>
                                 ))}
                             </ul>
                         )}
 
-                        <form onSubmit={submitKey} className="grid gap-4">
+                        {can.createSshKeys && (
+                            <form onSubmit={submitKey} className="grid gap-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="key-name">Name</Label>
                                 <Input
@@ -221,7 +346,8 @@ export default function ServersShow({
                                     Add SSH key
                                 </Button>
                             </div>
-                        </form>
+                            </form>
+                        )}
                     </CardContent>
                 </Card>
 

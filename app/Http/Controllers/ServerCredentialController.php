@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Server;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -35,5 +36,16 @@ class ServerCredentialController extends Controller
         return redirect()
             ->route('servers.show', $server)
             ->with('success', 'Credential removed successfully.');
+    }
+
+    /**
+     * Reveal the decrypted password. Deliberately a separate endpoint (behind
+     * servers.update) so secrets never ship inside page payloads.
+     */
+    public function reveal(Server $server, string $credential): JsonResponse
+    {
+        $credential = $server->credentials()->where('id', $credential)->firstOrFail();
+
+        return response()->json(['password' => $credential->password]);
     }
 }

@@ -1,8 +1,10 @@
 <?php
 
+use App\Models\Permission;
 use App\Models\Server;
 use App\Models\ServerCredential;
 use App\Models\SshKey;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -48,6 +50,12 @@ test('renders the show page without exposing secrets', function () {
             ->has('sshKeys', 1)
             ->where('sshKeys.0.name', 'Deploy key')
             ->missing('sshKeys.0.private_key')
+            ->where('can.viewCredentials', true)
+            ->where('can.viewSshKeys', true)
+            ->where('can.createCredentials', true)
+            ->where('can.deleteCredentials', true)
+            ->where('can.createSshKeys', true)
+            ->where('can.deleteSshKeys', true)
         );
 });
 
@@ -161,4 +169,159 @@ test('returns 404 when deleting another server ssh key', function () {
         ->assertNotFound();
 
     expect(SshKey::where('id', $key->id)->exists())->toBeTrue();
+});
+
+test('reveals a credential password to authorized users', function () {
+    $server = Server::factory()->create();
+    $credential = ServerCredential::factory()->create(['server_id' => $server->id, 'password' => 'super-secret']);
+
+    $this->actingAs(superAdminUser())->getJson("/servers/{$server->id}/credentials/{$credential->id}/reveal")
+        ->assertOk()
+        ->assertJson(['password' => 'super-secret']);
+});
+
+test('reveals an ssh private key to authorized users', function () {
+    $server = Server::factory()->create();
+    $key = $server->sshKeys()->create(['name' => 'Deploy key', 'private_key' => 'super-secret-key']);
+
+    $this->actingAs(superAdminUser())->getJson("/servers/{$server->id}/ssh-keys/{$key->id}/reveal")
+        ->assertOk()
+        ->assertJson(['private_key' => 'super-secret-key']);
+});
+
+test('denies reveal to guests and non-super-admins', function () {
+    $server = Server::factory()->create();
+    $credential = ServerCredential::factory()->create(['server_id' => $server->id]);
+    $key = $server->sshKeys()->create(['name' => 'Deploy key', 'private_key' => 'secret']);
+
+    $this->getJson("/servers/{$server->id}/credentials/{$credential->id}/reveal")->assertUnauthorized();
+    $this->getJson("/servers/{$server->id}/ssh-keys/{$key->id}/reveal")->assertUnauthorized();
+
+    $this->actingAs(standardUser())->getJson("/servers/{$server->id}/credentials/{$credential->id}/reveal")->assertForbidden();
+    $this->actingAs(standardUser())->getJson("/servers/{$server->id}/ssh-keys/{$key->id}/reveal")->assertForbidden();
+});
+
+test('returns 404 when revealing another server secret', function () {
+    $server = Server::factory()->create();
+    $other = Server::factory()->create();
+    $credential = ServerCredential::factory()->create(['server_id' => $other->id]);
+    $key = $other->sshKeys()->create(['name' => 'Deploy key', 'private_key' => 'secret']);
+
+    $this->actingAs(superAdminUser())->getJson("/servers/{$server->id}/credentials/{$credential->id}/reveal")->assertNotFound();
+    $this->actingAs(superAdminUser())->getJson("/servers/{$server->id}/ssh-keys/{$key->id}/reveal")->assertNotFound();
+});
+
+test('allows reveal with the granular view permission independently per secret', function () {
+    $server = Server::factory()->create();
+    $credential = ServerCredential::factory()->create(['server_id' => $server->id, 'password' => 'super-secret']);
+    $key = $server->sshKeys()->create(['name' => 'Deploy key', 'private_key' => 'super-secret-key']);
+
+    $user = User::factory()->withoutDefaultRole()->create();
+    $user->givePermissionTo(Permission::firstOrCreate(['name' => 'credentials.view', 'guard_name' => 'web']));
+
+    $this->actingAs($user)->getJson("/servers/{$server->id}/credentials/{$credential->id}/reveal")
+        ->assertOk()
+        ->assertJson(['password' => 'super-secret']);
+
+    $this->actingAs($user)->getJson("/servers/{$server->id}/ssh-keys/{$key->id}/reveal")
+        ->assertForbidden();
+});
+
+test('denies reveal to users with only servers.view', function () {
+    $server = Server::factory()->create();
+    $credential = ServerCredential::factory()->create(['server_id' => $server->id]);
+
+    $user = User::factory()->withoutDefaultRole()->create();
+    $user->givePermissionTo(Permission::firstOrCreate(['name' => 'servers.view', 'guard_name' => 'web']));
+
+    $this->actingAs($user)->get("/servers/{$server->id}")
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('can.viewCredentials', false)
+            ->where('can.viewSshKeys', false)
+            ->where('can.createCredentials', false)
+            ->where('can.deleteCredentials', false)
+            ->where('can.createSshKeys', false)
+            ->where('can.deleteSshKeys', false)
+        );
+
+    $this->actingAs($user)->getJson("/servers/{$server->id}/credentials/{$credential->id}/reveal")
+        ->assertForbidden();
+});
+
+test('separates credential management permissions granularly', function () {
+    $server = Server::factory()->create();
+    $existing = ServerCredential::factory()->create(['server_id' => $server->id]);
+
+    $creator = User::factory()->withoutDefaultRole()->create();
+    $creator->givePermissionTo(Permission::firstOrCreate(['name' => 'credentials.create', 'guard_name' => 'web']));
+
+    $this->actingAs($creator)->post("/servers/{$server->id}/credentials", [
+        'username' => 'deploy',
+        'password' => 'secret',
+    ])->assertRedirect("/servers/{$server->id}");
+
+    $this->actingAs($creator)->delete("/servers/{$server->id}/credentials/{$existing->id}")
+        ->assertForbidden();
+
+    $destroyer = User::factory()->withoutDefaultRole()->create();
+    $destroyer->givePermissionTo(Permission::firstOrCreate(['name' => 'credentials.delete', 'guard_name' => 'web']));
+
+    $this->actingAs($destroyer)->post("/servers/{$server->id}/credentials", [
+        'username' => 'other',
+        'password' => 'secret',
+    ])->assertForbidden();
+
+    $this->actingAs($destroyer)->delete("/servers/{$server->id}/credentials/{$existing->id}")
+        ->assertRedirect("/servers/{$server->id}");
+
+    expect(ServerCredential::where('id', $existing->id)->exists())->toBeFalse();
+});
+
+test('separates ssh key management permissions granularly', function () {
+    $server = Server::factory()->create();
+    $existing = $server->sshKeys()->create(['name' => 'Old key', 'private_key' => 'secret']);
+
+    $creator = User::factory()->withoutDefaultRole()->create();
+    $creator->givePermissionTo(Permission::firstOrCreate(['name' => 'ssh-keys.create', 'guard_name' => 'web']));
+
+    $this->actingAs($creator)->post("/servers/{$server->id}/ssh-keys", [
+        'name' => 'New key',
+        'private_key' => 'secret',
+    ])->assertRedirect("/servers/{$server->id}");
+
+    $this->actingAs($creator)->delete("/servers/{$server->id}/ssh-keys/{$existing->id}")
+        ->assertForbidden();
+
+    $destroyer = User::factory()->withoutDefaultRole()->create();
+    $destroyer->givePermissionTo(Permission::firstOrCreate(['name' => 'ssh-keys.delete', 'guard_name' => 'web']));
+
+    $this->actingAs($destroyer)->post("/servers/{$server->id}/ssh-keys", [
+        'name' => 'Another key',
+        'private_key' => 'secret',
+    ])->assertForbidden();
+
+    $this->actingAs($destroyer)->delete("/servers/{$server->id}/ssh-keys/{$existing->id}")
+        ->assertRedirect("/servers/{$server->id}");
+
+    expect(SshKey::where('id', $existing->id)->exists())->toBeFalse();
+});
+
+test('servers.update alone grants no secret access', function () {
+    $server = Server::factory()->create();
+    $credential = ServerCredential::factory()->create(['server_id' => $server->id]);
+
+    $user = User::factory()->withoutDefaultRole()->create();
+    $user->givePermissionTo(Permission::firstOrCreate(['name' => 'servers.update', 'guard_name' => 'web']));
+
+    $this->actingAs($user)->post("/servers/{$server->id}/credentials", [
+        'username' => 'deploy',
+        'password' => 'secret',
+    ])->assertForbidden();
+
+    $this->actingAs($user)->delete("/servers/{$server->id}/credentials/{$credential->id}")
+        ->assertForbidden();
+
+    $this->actingAs($user)->getJson("/servers/{$server->id}/credentials/{$credential->id}/reveal")
+        ->assertForbidden();
 });

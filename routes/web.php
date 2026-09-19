@@ -67,17 +67,23 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('permission:servers.view')
         ->name('servers.show');
     Route::post('servers/{server}/credentials', [ServerCredentialController::class, 'store'])
-        ->middleware('permission:servers.update')
+        ->middleware('permission:credentials.create')
         ->name('servers.credentials.store');
     Route::delete('servers/{server}/credentials/{credential}', [ServerCredentialController::class, 'destroy'])
-        ->middleware('permission:servers.update')
+        ->middleware('permission:credentials.delete')
         ->name('servers.credentials.destroy');
+    Route::get('servers/{server}/credentials/{credential}/reveal', [ServerCredentialController::class, 'reveal'])
+        ->middleware('permission:credentials.view')
+        ->name('servers.credentials.reveal');
     Route::post('servers/{server}/ssh-keys', [SshKeyController::class, 'store'])
-        ->middleware('permission:servers.update')
+        ->middleware('permission:ssh-keys.create')
         ->name('servers.ssh-keys.store');
     Route::delete('servers/{server}/ssh-keys/{key}', [SshKeyController::class, 'destroy'])
-        ->middleware('permission:servers.update')
+        ->middleware('permission:ssh-keys.delete')
         ->name('servers.ssh-keys.destroy');
+    Route::get('servers/{server}/ssh-keys/{key}/reveal', [SshKeyController::class, 'reveal'])
+        ->middleware('permission:ssh-keys.view')
+        ->name('servers.ssh-keys.reveal');
 });
 
 require __DIR__.'/settings.php';

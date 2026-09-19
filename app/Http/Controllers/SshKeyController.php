@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Server;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -36,5 +37,16 @@ class SshKeyController extends Controller
         return redirect()
             ->route('servers.show', $server)
             ->with('success', 'SSH key removed successfully.');
+    }
+
+    /**
+     * Reveal the decrypted private key. Deliberately a separate endpoint
+     * (behind servers.update) so secrets never ship inside page payloads.
+     */
+    public function reveal(Server $server, string $key): JsonResponse
+    {
+        $key = $server->sshKeys()->where('id', $key)->firstOrFail();
+
+        return response()->json(['private_key' => $key->private_key]);
     }
 }

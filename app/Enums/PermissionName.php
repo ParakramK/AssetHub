@@ -39,6 +39,14 @@ enum PermissionName: string
     case ServersUpdate = 'servers.update';
     case ServersDelete = 'servers.delete';
 
+    case CredentialsView = 'credentials.view';
+    case CredentialsCreate = 'credentials.create';
+    case CredentialsDelete = 'credentials.delete';
+
+    case SshKeysView = 'ssh-keys.view';
+    case SshKeysCreate = 'ssh-keys.create';
+    case SshKeysDelete = 'ssh-keys.delete';
+
     case EmployeesView = 'employees.view';
     case EmployeesCreate = 'employees.create';
     case EmployeesUpdate = 'employees.update';

@@ -115,3 +115,66 @@ test('stores a server with the default port when omitted', function () {
 
     expect(Server::where('ip_address', '192.168.1.10')->firstOrFail()->port)->toBe(22);
 });
+
+test('searches servers by name or ip address', function () {
+    Server::factory()->create(['name' => 'Web 01', 'ip_address' => '192.168.1.10']);
+    Server::factory()->create(['name' => 'DB 01', 'ip_address' => '10.0.0.5']);
+
+    $this->actingAs(superAdminUser())->get('/servers?search=web')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('servers/index')
+            ->has('servers', 1)
+            ->where('servers.0.name', 'Web 01')
+            ->where('filters.search', 'web')
+        );
+
+    $this->actingAs(superAdminUser())->get('/servers?search=10.0.0')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('servers', 1)
+            ->where('servers.0.name', 'DB 01')
+        );
+});
+
+test('filters servers by company and type', function () {
+    $acme = Company::factory()->create(['name' => 'Acme']);
+    $other = Company::factory()->create(['name' => 'Other']);
+    Server::factory()->create(['name' => 'Web 01', 'type' => 'ssh', 'company_id' => $acme->id]);
+    Server::factory()->create(['name' => 'Win 01', 'type' => 'rdp', 'company_id' => $acme->id]);
+    Server::factory()->create(['name' => 'Other 01', 'type' => 'ssh', 'company_id' => $other->id]);
+
+    $this->actingAs(superAdminUser())->get("/servers?company_id={$acme->id}")
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('servers', 2)
+            ->where('filters.company_id', $acme->id)
+        );
+
+    $this->actingAs(superAdminUser())->get('/servers?type=rdp')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('servers', 1)
+            ->where('servers.0.name', 'Win 01')
+            ->where('filters.type', 'rdp')
+        );
+
+    $this->actingAs(superAdminUser())->get("/servers?company_id={$acme->id}&type=ssh")
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('servers', 1)
+            ->where('servers.0.name', 'Web 01')
+        );
+});
+
+test('ignores invalid filter values instead of failing', function () {
+    Server::factory()->create(['name' => 'Web 01']);
+
+    $this->actingAs(superAdminUser())->get('/servers?type=made-up&company_id=nope')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('servers', 1)
+            ->where('filters.type', null)
+            ->where('filters.company_id', null)
+        );
+});
