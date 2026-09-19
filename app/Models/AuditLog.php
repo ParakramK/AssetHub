@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\AuditAction;
 use Database\Factories\AuditLogFactory;
+use Eloquent;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -32,7 +33,7 @@ use Illuminate\Support\Str;
  *
  * @method static AuditLogFactory factory($count = null, $state = [])
  *
- * @mixin \Eloquent
+ * @mixin Eloquent
  */
 class AuditLog extends Model
 {

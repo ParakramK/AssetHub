@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Database\Factories\SshKeyFactory;
+use Eloquent;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,7 +23,7 @@ use Illuminate\Support\Str;
  *
  * @method static SshKeyFactory factory($count = null, $state = [])
  *
- * @mixin \Eloquent
+ * @mixin Eloquent
  */
 class SshKey extends Model
 {

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Database\Factories\DeviceAssignmentFactory;
+use Eloquent;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -23,7 +24,7 @@ use Illuminate\Support\Str;
  *
  * @method static DeviceAssignmentFactory factory($count = null, $state = [])
  *
- * @mixin \Eloquent
+ * @mixin Eloquent
  */
 class DeviceAssignment extends Model
 {

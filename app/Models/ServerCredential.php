@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Database\Factories\ServerCredentialFactory;
+use Eloquent;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -21,7 +22,7 @@ use Illuminate\Support\Str;
  *
  * @method static ServerCredentialFactory factory($count = null, $state = [])
  *
- * @mixin \Eloquent
+ * @mixin Eloquent
  */
 class ServerCredential extends Model
 {

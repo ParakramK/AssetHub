@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\DeviceStatus;
 use Database\Factories\DeviceFactory;
+use Eloquent;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -34,7 +35,7 @@ use Illuminate\Support\Str;
  *
  * @method static DeviceFactory factory($count = null, $state = [])
  *
- * @mixin \Eloquent
+ * @mixin Eloquent
  */
 class Device extends Model
 {

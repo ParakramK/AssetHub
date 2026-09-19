@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ServerType;
 use Database\Factories\ServerFactory;
+use Eloquent;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -30,7 +31,7 @@ use Illuminate\Support\Str;
  *
  * @method static ServerFactory factory($count = null, $state = [])
  *
- * @mixin \Eloquent
+ * @mixin Eloquent
  */
 class Server extends Model
 {

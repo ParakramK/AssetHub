@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Database\Factories\EmployeeFactory;
+use Eloquent;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -28,7 +29,7 @@ use Illuminate\Support\Str;
  *
  * @method static EmployeeFactory factory($count = null, $state = [])
  *
- * @mixin \Eloquent
+ * @mixin Eloquent
  */
 class Employee extends Model
 {

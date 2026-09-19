@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Eloquent;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Carbon;
@@ -15,7 +16,7 @@ use Spatie\Permission\Models\Permission as SpatiePermission;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  *
- * @mixin \Eloquent
+ * @mixin Eloquent
  */
 class Permission extends SpatiePermission
 {

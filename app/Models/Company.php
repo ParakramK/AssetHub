@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Eloquent;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +15,7 @@ use Illuminate\Support\Str;
  * @method static Builder<static>|Company newQuery()
  * @method static Builder<static>|Company query()
  *
- * @mixin \Eloquent
+ * @mixin Eloquent
  */
 class Company extends Model
 {

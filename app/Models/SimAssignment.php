@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Database\Factories\SimAssignmentFactory;
+use Eloquent;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -23,7 +24,7 @@ use Illuminate\Support\Str;
  *
  * @method static SimAssignmentFactory factory($count = null, $state = [])
  *
- * @mixin \Eloquent
+ * @mixin Eloquent
  */
 class SimAssignment extends Model
 {

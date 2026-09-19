@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\SimProvider;
 use App\Enums\SimStatus;
 use Database\Factories\SimCardFactory;
+use Eloquent;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -29,7 +30,7 @@ use Illuminate\Support\Str;
  *
  * @method static SimCardFactory factory($count = null, $state = [])
  *
- * @mixin \Eloquent
+ * @mixin Eloquent
  */
 class SimCard extends Model
 {

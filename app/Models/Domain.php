@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use Database\Factories\DomainFactory;
+use Eloquent;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -21,12 +24,12 @@ use Illuminate\Support\Str;
  * @property-read Company $company
  * @property-read User|null $creator
  *
- * @method static \Database\Factories\DomainFactory factory($count = null, $state = [])
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Domain newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Domain newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Domain query()
+ * @method static DomainFactory factory($count = null, $state = [])
+ * @method static Builder<static>|Domain newModelQuery()
+ * @method static Builder<static>|Domain newQuery()
+ * @method static Builder<static>|Domain query()
  *
- * @mixin \Eloquent
+ * @mixin Eloquent
  */
 class Domain extends Model
 {
