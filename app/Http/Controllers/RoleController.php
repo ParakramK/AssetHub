@@ -32,7 +32,10 @@ class RoleController extends Controller
             'is_super_admin' => ['sometimes', 'boolean'],
         ]);
 
-        Role::create($validated);
+        Role::create([
+            ...$validated,
+            'guard_name' => 'web',
+        ]);
 
         return redirect()
             ->route('roles.index')

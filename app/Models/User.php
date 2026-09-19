@@ -4,13 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Spatie\Permission\Traits\HasRoles;
 
 /**
  * @property int $id
@@ -23,7 +23,6 @@ use Illuminate\Support\Str;
  * @property Carbon|null $updated_at
  * @property-read DatabaseNotificationCollection<int, DatabaseNotification> $notifications
  * @property-read int|null $notifications_count
- * @property-read Role|null $role
  *
  * @method static \Database\Factories\UserFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newModelQuery()
@@ -42,13 +41,12 @@ use Illuminate\Support\Str;
  */
 class User extends Authenticatable
 {
-    use HasFactory, HasUuids, Notifiable;
+    use HasFactory, HasRoles, HasUuids, Notifiable;
 
     protected $fillable = [
         'name',
         'email',
         'password',
-        'role_id',
     ];
 
     protected $hidden = [
@@ -69,13 +67,16 @@ class User extends Authenticatable
         return (string) Str::uuid7();
     }
 
-    public function role(): BelongsTo
-    {
-        return $this->belongsTo(Role::class);
-    }
-
+    /**
+     * A user is a superadmin when at least one assigned role is flagged
+     * as a superadmin. Used by the centralized Gate::before bypass.
+     */
     public function isSuperAdmin(): bool
     {
-        return $this->role?->is_super_admin === true;
+        if ($this->relationLoaded('roles')) {
+            return $this->roles->contains(fn (Role $role) => $role->is_super_admin === true);
+        }
+
+        return $this->roles()->where('is_super_admin', true)->exists();
     }
 }

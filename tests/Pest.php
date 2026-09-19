@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Role;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -43,6 +45,32 @@ expect()->extend('toBeOne', function () {
 | global functions to help you to reduce the number of lines of code in your test files.
 |
 */
+
+function superAdminUser(): User
+{
+    $role = Role::firstOrCreate(
+        ['name' => 'Super Admin', 'guard_name' => 'web'],
+        ['description' => 'Super Admin role', 'is_super_admin' => true],
+    );
+
+    $user = User::factory()->withoutDefaultRole()->create();
+    $user->syncRoles([$role]);
+
+    return $user;
+}
+
+function standardUser(): User
+{
+    $role = Role::firstOrCreate(
+        ['name' => 'User', 'guard_name' => 'web'],
+        ['description' => 'Standard User role'],
+    );
+
+    $user = User::factory()->withoutDefaultRole()->create();
+    $user->syncRoles([$role]);
+
+    return $user;
+}
 
 function something()
 {

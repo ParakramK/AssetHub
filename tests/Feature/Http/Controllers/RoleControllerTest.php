@@ -2,6 +2,9 @@
 
 use App\Models\Role;
 use Inertia\Testing\AssertableInertia as Assert;
+use Spatie\Permission\PermissionRegistrar;
+
+beforeEach(fn () => app(PermissionRegistrar::class)->forgetCachedPermissions());
 
 test('redirects guests to the login page', function (string $method, string $uri) {
     $this->{$method}($uri)->assertRedirect('/login');

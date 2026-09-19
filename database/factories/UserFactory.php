@@ -31,8 +31,29 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
-            'role_id' => Role::factory(),
         ];
+    }
+
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            if ($user->roles()->count() === 0) {
+                $user->assignRole(Role::firstOrCreate(['name' => 'User', 'guard_name' => 'web']));
+            }
+        });
+    }
+
+    /**
+     * Skip the automatic default-role assignment (the caller assigns roles).
+     *
+     * Clears callbacks instead of using a flag because factory states and
+     * counts clone the instance while closures stay bound to the original.
+     */
+    public function withoutDefaultRole(): static
+    {
+        $this->afterCreating = collect();
+
+        return $this;
     }
 
     /**

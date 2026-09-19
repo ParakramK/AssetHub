@@ -22,6 +22,7 @@ class CreateSuperAdmin extends Command
 
         if (! $role) {
             $this->error('No Super Admin role exists.');
+
             return self::FAILURE;
         }
 
@@ -43,17 +44,19 @@ class CreateSuperAdmin extends Command
 
         if (! $name || ! $email || ! $password) {
             $this->error('Name, email and password are required.');
+
             return self::FAILURE;
         }
 
-        User::updateOrCreate(
+        $user = User::updateOrCreate(
             ['email' => $email],
             [
                 'name' => $name,
                 'password' => Hash::make($password),
-                'role_id' => $role->id,
             ]
         );
+
+        $user->syncRoles([$role]);
 
         $this->info('Super Admin created successfully.');
 

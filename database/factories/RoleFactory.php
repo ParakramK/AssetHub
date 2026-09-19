@@ -19,6 +19,7 @@ class RoleFactory extends Factory
     {
         return [
             'name' => fake()->unique()->jobTitle(),
+            'guard_name' => 'web',
             'description' => fake()->sentence(),
             'is_super_admin' => false,
         ];
