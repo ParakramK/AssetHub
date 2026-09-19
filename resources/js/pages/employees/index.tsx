@@ -140,6 +140,9 @@ export default function EmployeesIndex({
                                             <th className="px-6 py-3 font-medium">Email</th>
                                             <th className="px-6 py-3 font-medium">Mobile</th>
                                             <th className="px-6 py-3 font-medium">Company</th>
+                                            <th className="px-6 py-3 font-medium">
+                                                <span className="sr-only">Actions</span>
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y">
@@ -151,6 +154,11 @@ export default function EmployeesIndex({
                                                     {employee.mobile_no || <span className="italic">No mobile</span>}
                                                 </td>
                                                 <td className="text-muted-foreground px-6 py-4">{employee.company.name}</td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <Button variant="outline" size="sm" asChild>
+                                                        <Link href={route('employees.show', employee.id)}>View</Link>
+                                                    </Button>
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>

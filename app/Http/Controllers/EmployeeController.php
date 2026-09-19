@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Company;
 use App\Models\Employee;
+use App\Models\SimCard;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -62,5 +63,28 @@ class EmployeeController extends Controller
         return redirect()
             ->route('employees.index')
             ->with('success', 'Employee created successfully.');
+    }
+
+    public function show(Employee $employee): Response
+    {
+        $employee->load('company');
+
+        return Inertia::render('employees/show', [
+            'employee' => $employee,
+            'currentSims' => $employee->currentSimCards()->orderBy('number')->get()->map(fn ($sim) => [
+                'id' => $sim->id,
+                'number' => $sim->number,
+                'provider' => $sim->provider,
+                'assignment_id' => $sim->assignments()->whereNull('returned_at')->latest('assigned_at')->first()?->id,
+            ])->all(),
+            'history' => $employee->simAssignments()
+                ->with('simCard:id,number')
+                ->orderByDesc('assigned_at')
+                ->get(),
+            'availableSims' => SimCard::where('company_id', $employee->company_id)
+                ->whereNull('current_employee_id')
+                ->orderBy('number')
+                ->get(['id', 'number', 'provider']),
+        ]);
     }
 }

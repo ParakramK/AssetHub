@@ -47,6 +47,16 @@ enum PermissionName: string
     case SshKeysCreate = 'ssh-keys.create';
     case SshKeysDelete = 'ssh-keys.delete';
 
+    case DeviceTypesView = 'device-types.view';
+    case DeviceTypesCreate = 'device-types.create';
+    case DeviceTypesUpdate = 'device-types.update';
+    case DeviceTypesDelete = 'device-types.delete';
+
+    case SimCardsView = 'sim-cards.view';
+    case SimCardsCreate = 'sim-cards.create';
+    case SimCardsUpdate = 'sim-cards.update';
+    case SimCardsDelete = 'sim-cards.delete';
+
     case EmployeesView = 'employees.view';
     case EmployeesCreate = 'employees.create';
     case EmployeesUpdate = 'employees.update';

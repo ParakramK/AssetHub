@@ -4,7 +4,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutGrid, Building2, Globe, Server, ShieldCheck, Users, Contact } from 'lucide-react';
+import { LayoutGrid, Building2, Globe, Server, ShieldCheck, Users, Contact, Monitor, Smartphone } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -53,6 +53,16 @@ export function AppSidebar() {
                   title: 'Employees',
                   url: '/employees',
                   icon: Contact,
+              },
+              {
+                  title: 'Device Types',
+                  url: '/device-types',
+                  icon: Monitor,
+              },
+              {
+                  title: 'SIM Cards',
+                  url: '/sim-cards',
+                  icon: Smartphone,
               },
               {
                   title: 'Users',
