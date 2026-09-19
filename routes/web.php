@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DomainController;
+use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\ServerController;
 use App\Http\Controllers\ServerCredentialController;
@@ -67,6 +68,16 @@ Route::middleware(['auth'])->group(function () {
     Route::post('domains', [DomainController::class, 'store'])
         ->middleware('permission:domains.create')
         ->name('domains.store');
+
+    Route::get('employees', [EmployeeController::class, 'index'])
+        ->middleware('permission:employees.view')
+        ->name('employees.index');
+    Route::get('employees/create', [EmployeeController::class, 'create'])
+        ->middleware('permission:employees.create')
+        ->name('employees.create');
+    Route::post('employees', [EmployeeController::class, 'store'])
+        ->middleware('permission:employees.create')
+        ->name('employees.store');
 
     Route::get('servers', [ServerController::class, 'index'])
         ->middleware('permission:servers.view')
