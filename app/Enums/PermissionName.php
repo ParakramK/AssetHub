@@ -34,6 +34,11 @@ enum PermissionName: string
     case DomainsUpdate = 'domains.update';
     case DomainsDelete = 'domains.delete';
 
+    case ServersView = 'servers.view';
+    case ServersCreate = 'servers.create';
+    case ServersUpdate = 'servers.update';
+    case ServersDelete = 'servers.delete';
+
     case EmployeesView = 'employees.view';
     case EmployeesCreate = 'employees.create';
     case EmployeesUpdate = 'employees.update';

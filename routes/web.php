@@ -3,6 +3,9 @@
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DomainController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\ServerController;
+use App\Http\Controllers\ServerCredentialController;
+use App\Http\Controllers\SshKeyController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -50,6 +53,31 @@ Route::middleware(['auth'])->group(function () {
     Route::post('domains', [DomainController::class, 'store'])
         ->middleware('permission:domains.create')
         ->name('domains.store');
+
+    Route::get('servers', [ServerController::class, 'index'])
+        ->middleware('permission:servers.view')
+        ->name('servers.index');
+    Route::get('servers/create', [ServerController::class, 'create'])
+        ->middleware('permission:servers.create')
+        ->name('servers.create');
+    Route::post('servers', [ServerController::class, 'store'])
+        ->middleware('permission:servers.create')
+        ->name('servers.store');
+    Route::get('servers/{server}', [ServerController::class, 'show'])
+        ->middleware('permission:servers.view')
+        ->name('servers.show');
+    Route::post('servers/{server}/credentials', [ServerCredentialController::class, 'store'])
+        ->middleware('permission:servers.update')
+        ->name('servers.credentials.store');
+    Route::delete('servers/{server}/credentials/{credential}', [ServerCredentialController::class, 'destroy'])
+        ->middleware('permission:servers.update')
+        ->name('servers.credentials.destroy');
+    Route::post('servers/{server}/ssh-keys', [SshKeyController::class, 'store'])
+        ->middleware('permission:servers.update')
+        ->name('servers.ssh-keys.store');
+    Route::delete('servers/{server}/ssh-keys/{key}', [SshKeyController::class, 'destroy'])
+        ->middleware('permission:servers.update')
+        ->name('servers.ssh-keys.destroy');
 });
 
 require __DIR__.'/settings.php';
