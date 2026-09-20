@@ -59,6 +59,24 @@ test('assigns a device and syncs holder and status', function () {
         ->and(DeviceAssignment::where('device_id', $device->id)->whereNull('returned_at')->count())->toBe(1);
 });
 
+test('allows assigning multiple devices to the same employee', function () {
+    $employee = Employee::factory()->create();
+    $first = Device::factory()->create(['company_id' => $employee->company_id]);
+    $second = Device::factory()->create(['company_id' => $employee->company_id]);
+
+    $this->actingAs(superAdminUser())->post("/employees/{$employee->id}/device-assignments", [
+        'device_id' => $first->id,
+    ])->assertRedirect("/employees/{$employee->id}");
+
+    $this->actingAs(superAdminUser())->post("/employees/{$employee->id}/device-assignments", [
+        'device_id' => $second->id,
+    ])->assertRedirect("/employees/{$employee->id}");
+
+    expect(DeviceAssignment::where('employee_id', $employee->id)->whereNull('returned_at')->count())->toBe(2)
+        ->and($first->refresh()->current_employee_id)->toBe($employee->id)
+        ->and($second->refresh()->current_employee_id)->toBe($employee->id);
+});
+
 test('rejects assigning an already assigned device', function () {
     $employee = Employee::factory()->create();
     $other = Employee::factory()->create(['company_id' => $employee->company_id]);

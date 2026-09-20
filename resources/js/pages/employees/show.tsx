@@ -171,7 +171,7 @@ export default function EmployeesShow({
                             </ul>
                         )}
 
-                        {availableSims.length > 0 && (
+                        {availableSims.length > 0 ? (
                             <form onSubmit={submit} className="flex flex-col gap-2 sm:flex-row sm:items-end">
                                 <div className="grid flex-1 gap-2">
                                     <Label htmlFor="sim_card_id">Assign a SIM</Label>
@@ -193,6 +193,10 @@ export default function EmployeesShow({
                                     Assign
                                 </Button>
                             </form>
+                        ) : (
+                            <Button asChild>
+                                <Link href={route('sim-cards.create')}>Assign Another</Link>
+                            </Button>
                         )}
                     </CardContent>
                 </Card>
@@ -265,7 +269,7 @@ export default function EmployeesShow({
                             </ul>
                         )}
 
-                        {availableDevices.length > 0 && (
+                        {availableDevices.length > 0 ? (
                             <form onSubmit={submitDevice} className="flex flex-col gap-2 sm:flex-row sm:items-end">
                                 <div className="grid flex-1 gap-2">
                                     <Label htmlFor="device_id">Assign a device</Label>
@@ -287,6 +291,10 @@ export default function EmployeesShow({
                                     Assign
                                 </Button>
                             </form>
+                        ) : (
+                            <Button asChild>
+                                <Link href={route('devices.create')}>Assign Another</Link>
+                            </Button>
                         )}
                     </CardContent>
                 </Card>
