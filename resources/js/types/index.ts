@@ -3,6 +3,7 @@ import { LucideIcon } from 'lucide-react';
 export interface Auth {
     user: User;
     is_super_admin: boolean;
+    permissions: string[];
 }
 
 export interface BreadcrumbItem {
@@ -20,6 +21,12 @@ export interface NavItem {
     url: string;
     icon?: LucideIcon | null;
     isActive?: boolean;
+    /**
+     * Permission module prefix (e.g. `devices` matches `devices.view`,
+     * `devices.create`, ...). An item is visible when the user holds any
+     * permission in the module. Omit for always-visible items.
+     */
+    permissionPrefix?: string;
 }
 
 export interface SharedData {
