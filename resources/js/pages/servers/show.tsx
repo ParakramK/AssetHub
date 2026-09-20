@@ -149,7 +149,7 @@ export default function ServersShow({
 
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                 <div className="flex items-center justify-between">
-                    <Heading title={server.name} description={`${server.ip_address} · ${server.port ?? 'default port'}`} />
+                    <Heading title={server.name} description={`${server.ip_address} : ${server.port ?? 'default port'}`} />
                     <Badge variant="secondary" className="uppercase">
                         {server.type}
                     </Badge>

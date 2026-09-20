@@ -7,6 +7,7 @@ use App\Models\Domain;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -63,5 +64,32 @@ class DomainController extends Controller
         return redirect()
             ->route('domains.index')
             ->with('success', 'Domain created successfully.');
+    }
+
+    public function edit(Domain $domain): Response
+    {
+        return Inertia::render('domains/edit', [
+            'domain' => [
+                ...$domain->only(['id', 'company_id', 'domain_name', 'registrar']),
+                'expiry_date' => $domain->expiry_date?->format('Y-m-d'),
+            ],
+            'companies' => Company::query()->orderBy('name')->get(['id', 'name']),
+        ]);
+    }
+
+    public function update(Request $request, Domain $domain): RedirectResponse
+    {
+        $validated = $request->validate([
+            'company_id' => ['required', 'uuid', 'exists:companies,id'],
+            'domain_name' => ['required', 'string', 'max:255', Rule::unique('domains', 'domain_name')->ignore($domain->getKey())],
+            'registrar' => ['nullable', 'string', 'max:255'],
+            'expiry_date' => ['nullable', 'date'],
+        ]);
+
+        $domain->update($validated);
+
+        return redirect()
+            ->route('domains.index')
+            ->with('success', 'Domain updated successfully.');
     }
 }

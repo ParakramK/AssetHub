@@ -141,6 +141,9 @@ export default function DomainsIndex({
                                             <th className="px-6 py-3 font-medium">Company</th>
                                             <th className="px-6 py-3 font-medium">Registrar</th>
                                             <th className="px-6 py-3 font-medium">Expiry date</th>
+                                            <th className="px-6 py-3 font-medium">
+                                                <span className="sr-only">Actions</span>
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y">
@@ -157,6 +160,11 @@ export default function DomainsIndex({
                                                     ) : (
                                                         <span className="italic">No expiry date</span>
                                                     )}
+                                                </td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <Button variant="outline" size="sm" asChild>
+                                                        <Link href={route('domains.edit', domain.id)}>Edit</Link>
+                                                    </Button>
                                                 </td>
                                             </tr>
                                         ))}

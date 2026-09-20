@@ -74,6 +74,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('domains', [DomainController::class, 'store'])
         ->middleware('permission:domains.create')
         ->name('domains.store');
+    Route::get('domains/{domain}/edit', [DomainController::class, 'edit'])
+        ->middleware('permission:domains.update')
+        ->name('domains.edit');
+    Route::put('domains/{domain}', [DomainController::class, 'update'])
+        ->middleware('permission:domains.update')
+        ->name('domains.update');
 
     Route::get('employees', [EmployeeController::class, 'index'])
         ->middleware('permission:employees.view')
