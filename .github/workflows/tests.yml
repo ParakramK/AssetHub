@@ -25,17 +25,15 @@ jobs:
           tools: composer:v2
           coverage: xdebug
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Setup pnpm and Node
+        uses: pnpm/setup@v2
         with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: Install Node Dependencies
-        run: npm ci
+          runtime: node@22
+          cache: true
+          require-lockfile: true
 
       - name: Build Assets
-        run: npm run build
+        run: pnpm run build
 
       - name: Create SQLite Database
         run: touch database/database.sqlite

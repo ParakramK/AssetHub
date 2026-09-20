@@ -24,19 +24,24 @@ jobs:
         with:
           php-version: '8.4'
 
+      - name: Setup pnpm and Node
+        uses: pnpm/setup@v2
+        with:
+          runtime: node@22
+          cache: true
+          require-lockfile: true
+
       - name: Install Dependencies
-        run: |
-          composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-          npm install
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 
       - name: Run Pint
         run: vendor/bin/pint
 
       - name: Format Frontend
-        run: npm run format
+        run: pnpm run format
 
       - name: Lint Frontend
-        run: npm run lint
+        run: pnpm run lint
 
       # - name: Commit Changes
       #   uses: stefanzweifel/git-auto-commit-action@v5
