@@ -24,15 +24,20 @@ jobs:
         with:
           php-version: '8.4'
 
+      # version is explicit (kept in sync with package.json packageManager):
+      # v2 has no require-lockfile input, so install runs as a separate frozen step.
       - name: Setup pnpm and Node
         uses: pnpm/setup@v2
         with:
+          version: 11.15.1
           runtime: node@22
           cache: true
-          require-lockfile: true
+          install: false
 
       - name: Install Dependencies
-        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+        run: |
+          composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+          pnpm install --frozen-lockfile
 
       - name: Run Pint
         run: vendor/bin/pint

@@ -25,12 +25,18 @@ jobs:
           tools: composer:v2
           coverage: xdebug
 
+      # version is explicit (kept in sync with package.json packageManager):
+      # v2 has no require-lockfile input, so install runs as a separate frozen step.
       - name: Setup pnpm and Node
         uses: pnpm/setup@v2
         with:
+          version: 11.15.1
           runtime: node@22
           cache: true
-          require-lockfile: true
+          install: false
+
+      - name: Install Node Dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Build Assets
         run: pnpm run build
