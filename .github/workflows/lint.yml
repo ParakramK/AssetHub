@@ -5,10 +5,56 @@ on:
     branches:
       - develop
       - main
+    paths:
+      - '.github/workflows/**'
+      - 'app/**'
+      - 'bootstrap/**'
+      - 'config/**'
+      - 'database/**'
+      - 'public/**'
+      - 'resources/**'
+      - 'routes/**'
+      - 'tests/**'
+      - '*.php'
+      - 'artisan'
+      - 'composer.json'
+      - 'composer.lock'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'vite.config.js'
+      - 'tsconfig.json'
+      - 'eslint.config.js'
+      - 'components.json'
+      - 'phpunit.xml'
+
   pull_request:
     branches:
       - develop
       - main
+    paths:
+      - '.github/workflows/**'
+      - 'app/**'
+      - 'bootstrap/**'
+      - 'config/**'
+      - 'database/**'
+      - 'public/**'
+      - 'resources/**'
+      - 'routes/**'
+      - 'tests/**'
+      - '*.php'
+      - 'artisan'
+      - 'composer.json'
+      - 'composer.lock'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'vite.config.js'
+      - 'tsconfig.json'
+      - 'eslint.config.js'
+      - 'components.json'
+      - 'phpunit.xml'
+
 
 permissions:
   contents: write
